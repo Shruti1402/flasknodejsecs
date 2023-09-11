@@ -6,46 +6,38 @@ on:
 
 jobs:
   build:
-    name: Build
-    runs-on: [ubuntu-latest]
+    runs-on: ubuntu-latest
     steps:
-    - name: Checkout
-      uses: actions/checkout@v3
-
-    - name: Setup Node 16
-      uses: actions/setup-node@v3
+    - uses: actions/checkout@v2
+    - name: Set up python 3.7
+      uses: actions/setup-python@v2
       with:
-        node-version: 16.x
-        cache: 'npm'
-
+        python-version: 3.7
     - name: Install dependencies
       run: |
-        npm ci
-        npm init
-        npm run build
-        npm run lint
-        npm run format-check
-        npm run test
-
-    # Test end-to-end by uploading two artifacts and then downloading them
-    - name: Create artifact files
+        cd test
+        python -m pip install --upgrade pip
+        pip install coverage
+        if  [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+    - name: Run Unit Tests and generate coverage report
       run: |
-        mkdir -p  test/
-        echo "hello from artifact" > test/file1.txt
-        
-    # Upload a single file artifact
-    - name: 'Upload artifact #1'
-      uses: ./
+        cd test
+        python -m unittest -v
+        coverage run -m unittest
+        coverage report
+        coverage html
+    - name: Archive code coverage html report
+      uses: actions/upload-artifact@v2
       with:
-        name: 'Artifact-1'
-        path: test/file1.txt
-
-    
-    # Download Artifact #1 and verify the correctness of the content
-    - name: 'Download artifact #1'
-      uses: actions/download-artifact@v3
+        name: code-coverage-report
+        path: test/htmlcov
+    - name: Run package creation
+      run: |
+        cd src
+        python -m pip install --user --upgrade build
+        python -m build
+    - name: Archive package
+      uses: actions/upload-artifact@v2
       with:
-        name: 'Artifact-A'
-        path: tests
-
-    
+        name: awesome-calculator
+        path: test/dist
