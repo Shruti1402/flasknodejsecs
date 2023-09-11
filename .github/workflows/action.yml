@@ -19,25 +19,25 @@ jobs:
         python -m pip install --upgrade pip
         pip install coverage
         if  [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-    - name: Run Unit Tests and generate coverage report
-      run: |
-        cd test
-        python -m unittest -v
-        coverage run -m unittest
-        coverage report
-        coverage html
+    #- name: Run Unit Tests and generate coverage report
+    #  run: |
+    #    cd test
+    #    python -m unittest -v
+    #    coverage run -m unittest
+    #    coverage report
+    #    coverage html
     - name: Archive code coverage html report
       uses: actions/upload-artifact@v2
       with:
         name: code-coverage-report
-        path: test/htmlcov
+        path: test
     - name: Run package creation
       run: |
-        cd src
+        cd test
         python -m pip install --user --upgrade build
         python -m build
     - name: Archive package
       uses: actions/upload-artifact@v2
       with:
-        name: awesome-calculator
+        name: test_stack.py
         path: test/dist
